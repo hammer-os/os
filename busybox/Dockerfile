@@ -31,33 +31,14 @@ RUN gpg -q --import keys.asc \
 	&& rm busybox.tar.bz2*
 
 ADD config /busybox/.config
-
-COPY etc /busybox/rootfs/etc
 WORKDIR /busybox
-
-RUN chmod 755 /busybox/rootfs/etc && chmod 644 /busybox/rootfs/etc/*
 
 # https://www.mail-archive.com/toybox@lists.landley.net/msg02528.html
 # https://www.mail-archive.com/toybox@lists.landley.net/msg02526.html
 RUN sed -i 's/^struct kconf_id \*$/static &/g' scripts/kconfig/zconf.hash.c_shipped
 
-#	&& mkdir rootfs/usr && chmod 755 rootfs/usr \
-#	&& mkdir 	rootfs/usr/sbin && chmod 755 rootfs/usr/sbin \
-#	&& mkdir 	rootfs/usr/bin && chmod 755 rootfs/usr/bin \
-#	&& mkdir rootfs/boot && chmod 755 rootfs/boot \
 RUN make oldconfig && make busybox \
-	&& make CONFIG_PREFIX=/busybox/rootfs install \
-	&& mkdir rootfs/tmp && chmod 1777 rootfs/tmp \
-	&& mkdir rootfs/root && chmod 700 rootfs/root \
-	&& mkdir rootfs/home && chmod 755 rootfs/home \
-	&&	mkdir rootfs/etc/profile.d && chmod 755 rootfs/etc/profile.d \
-	&& mkdir rootfs/dev && chmod 755 rootfs/dev \
-	&& mkdir rootfs/mnt && chmod 755 rootfs/mnt \
-	&& mkdir rootfs/var && chmod 755 rootfs/var \
-	&& mkdir rootfs/run && chmod 755 rootfs/run \
-	&& mkdir rootfs/sys && chmod 555 rootfs/sys \
-	&& mkdir rootfs/proc && chmod 555 rootfs/proc
-
+	&& make CONFIG_PREFIX=/busybox/_install install
 
 FROM scratch
-COPY --from=busybox-build /busybox/rootfs /
+COPY --from=busybox-build /busybox/_install /
