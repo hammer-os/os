@@ -2,34 +2,16 @@ FROM alpine:3.7
 LABEL maintainer="Markus Sonderegger <marraison@gmail.com>"
 
 RUN apk add --no-cache \
-    argp-standalone \
-    automake \
-    bash \
-    bc \
-    binutils-dev \
-    bison \
-    build-base \
-    curl \
-    diffutils \
-    flex \
-    git \
-    gmp-dev \
-    gnupg \
+	alpine-sdk \
+	linux-headers \
     installkernel \
     kmod \
-    libelf-dev \
-    libressl-dev \
-    linux-headers \
-	libunwind-dev \
-    mpc1-dev \
-    mpfr-dev \
+    bash bc curl \
+    diffutils \
+    gnupg \
     ncurses-dev \
-    sed \
     squashfs-tools \
-    tar \
-    xz \
-    xz-dev \
-    zlib-dev
+    xz xz-dev zlib-dev
 
 ARG KERNEL_VERSION
 
@@ -61,13 +43,25 @@ RUN make defconfig && make oldconfig \
 
 RUN make -j "$(getconf _NPROCESSORS_ONLN)" modules
 
-RUN mkdir /kernel && cp arch/x86_64/boot/bzImage /kernel/bzImage
+# install kernel image
+RUN mkdir /kernel \
+	&& cp arch/x86_64/boot/bzImage /kernel/bzImage \
+	&& cp System.map /kernel/System.map
 
-# kernel headers
+# install kernel modules
+RUN make INSTALL_MOD_PATH=/tmp/kernel-modules modules_install \
+	&& (DVER=$(basename $(find /tmp/kernel-modules/lib/modules/ -mindepth 1 -maxdepth 1)) \
+	&& cd /tmp/kernel-modules/lib/modules/$DVER \
+	&& rm build source \
+	&& ln -s /usr/src/linux-headers-$DVER build) \
+	&& (cd /tmp/kernel-modules && tar cf /kernel/modules.tar .)
+
+# install kernel headers
 RUN mkdir -p /tmp/kernel-headers/usr \
 	&& make INSTALL_HDR_PATH=/tmp/kernel-headers/usr headers_install \
-	&& (cd /tmp/kernel-headers && tar cf /kernel/kernel-headers.tar usr)
+	&& (cd /tmp/kernel-headers && tar cf /kernel/headers.tar usr)
 
+# install developement headers
 RUN DVER=$(basename $(find /tmp/kernel-modules/lib/modules/ -mindepth 1 -maxdepth 1)) \
 	&& dir=/tmp/usr/src/linux-headers-$DVER \
 	&& mkdir -p $dir \
@@ -80,4 +74,7 @@ RUN DVER=$(basename $(find /tmp/kernel-modules/lib/modules/ -mindepth 1 -maxdept
 		-name '*.lds' -o -name '*.pl' -o -name '*.sh' -o \
 		-name 'objtool' -o -name 'fixdep' -o -name 'randomize_layout_seed.h' \) | \
 		tar cf - -T - | (cd $dir; tar xf -) \
-	&& (cd /tmp && tar cf /kernel/kernel-dev.tar usr/src)
+	&& (cd /tmp && tar cf /kernel/dev-headers.tar usr/src)
+
+FROM scratch
+COPY --from=0 /kernel /

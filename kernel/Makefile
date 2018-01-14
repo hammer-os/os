@@ -1,9 +1,9 @@
 include ../build.mk
 
-build: build-image
+build: build-image-amd64
 
-build-image:
-	@docker build --tag=hammer-kernel:$(HAMMER_VERSION) \
+build-image-amd64: Dockerfile config-amd64 keys.asc
+	@docker build --tag=$(REPONAME)/$(NAME)-kernel:$(VERSION) \
 		--build-arg=KERNEL_VERSION=$(KERNEL_VERSION) .
 
 clean:
