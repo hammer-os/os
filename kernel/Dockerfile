@@ -2,16 +2,26 @@ FROM alpine:3.7
 LABEL maintainer="Markus Sonderegger <marraison@gmail.com>"
 
 RUN apk add --no-cache \
-	alpine-sdk \
-	linux-headers \
-    installkernel \
-    kmod \
-    bash bc curl \
-    diffutils \
-    gnupg \
-    ncurses-dev \
-    squashfs-tools \
-    xz xz-dev zlib-dev
+		argp-standalone \
+		bash bc sed curl \
+		binutils-dev \
+		bison flex \
+		build-base \
+		automake \
+		diffutils \
+		git \
+		gnupg \
+		installkernel \
+		linux-headers \
+		kmod \
+		libelf-dev \
+		libressl-dev \
+		gmp-dev \
+		mpc1-dev \
+		mpfr-dev \
+		ncurses-dev \
+		squashfs-tools \
+		tar xz xz-dev zlib-dev
 
 ARG KERNEL_VERSION
 
@@ -45,7 +55,7 @@ RUN make -j "$(getconf _NPROCESSORS_ONLN)" modules
 
 # install kernel image
 RUN mkdir /kernel \
-	&& cp arch/x86_64/boot/bzImage /kernel/bzImage \
+	&& cp arch/x86_64/boot/bzImage /kernel/kernel \
 	&& cp System.map /kernel/System.map
 
 # install kernel modules
@@ -54,12 +64,12 @@ RUN make INSTALL_MOD_PATH=/tmp/kernel-modules modules_install \
 	&& cd /tmp/kernel-modules/lib/modules/$DVER \
 	&& rm build source \
 	&& ln -s /usr/src/linux-headers-$DVER build) \
-	&& (cd /tmp/kernel-modules && tar cf /kernel/modules.tar .)
+	&& (cd /tmp/kernel-modules && tar cf /kernel/kernel.tar .)
 
 # install kernel headers
 RUN mkdir -p /tmp/kernel-headers/usr \
 	&& make INSTALL_HDR_PATH=/tmp/kernel-headers/usr headers_install \
-	&& (cd /tmp/kernel-headers && tar cf /kernel/headers.tar usr)
+	&& (cd /tmp/kernel-headers && tar cf /kernel/kernel-headers.tar usr)
 
 # install developement headers
 RUN DVER=$(basename $(find /tmp/kernel-modules/lib/modules/ -mindepth 1 -maxdepth 1)) \
@@ -74,7 +84,9 @@ RUN DVER=$(basename $(find /tmp/kernel-modules/lib/modules/ -mindepth 1 -maxdept
 		-name '*.lds' -o -name '*.pl' -o -name '*.sh' -o \
 		-name 'objtool' -o -name 'fixdep' -o -name 'randomize_layout_seed.h' \) | \
 		tar cf - -T - | (cd $dir; tar xf -) \
-	&& (cd /tmp && tar cf /kernel/dev-headers.tar usr/src)
+	&& (cd /tmp && tar cf /kernel/kernel-dev.tar usr/src)
+
+RUN echo "KERNEL_SOURCE=${KERNEL_SOURCE}" > /kernel/kernel-source-info
 
 FROM scratch
 COPY --from=0 /kernel /
