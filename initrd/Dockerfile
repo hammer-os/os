@@ -1,6 +1,7 @@
 FROM marraison/hammer-rootfs:0.0.1 as rootfs
 FROM marraison/hammer-kernel:0.0.1 as kernel
 FROM alpine:3.7 as syslinux
+LABEL maintainer="Markus Sonderegger <marraison@gmail.com>"
 
 RUN apk add --no-cache libarchive-tools cdrkit syslinux xz
 

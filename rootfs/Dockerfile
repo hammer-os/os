@@ -1,4 +1,5 @@
 FROM marraison/hammer-busybox:0.0.1 as busybox-binary
+LABEL maintainer="Markus Sonderegger <marraison@gmail.com>"
 
 # install busybox coreutils (provides /bin and /sbin)
 RUN mkdir -p /rootfs/usr \
