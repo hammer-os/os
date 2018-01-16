@@ -51,7 +51,7 @@ func run(name string, args ...string) {
 func write(path string, data string) {
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Printf("cannot open %s: %v", path, err)
+		log.Printf("error opening %s: %v", path, err)
 		return
 	}
 
@@ -60,23 +60,23 @@ func write(path string, data string) {
 		err = io.ErrShortWrite
 	}
 	if err != nil {
-		log.Printf("cannot write to %s: %v", path, err)
+		log.Printf("error writing to %s: %v", path, err)
 		f.Close()
 		return
 	}
 	if err := f.Close(); err != nil {
-		log.Printf("cannot close %s: %v", path, err)
+		log.Printf("error closing %s: %v", path, err)
 	}
 }
 
 func touch(path string, perm os.FileMode) {
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
-		log.Printf("cannot create %s: %v", path, err)
+		log.Printf("error creating %s: %v", path, err)
 		return
 	}
 	if err = f.Close(); err != nil {
-		log.Printf("cannot close %s: %v", path, err)
+		log.Printf("error closint %s: %v", path, err)
 	}
 }
 
