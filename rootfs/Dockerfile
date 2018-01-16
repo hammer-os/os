@@ -1,17 +1,24 @@
 FROM marraison/hammer-busybox:0.0.1 as busybox-binary
 
 # install busybox coreutils (provides /bin and /sbin)
-RUN mkdir /rootfs \
-	&& cp -r sbin /rootfs/sbin && chmod 755 /rootfs/sbin \
-	&& cp -r bin /rootfs/bin && chmod 755 /rootfs/bin
+RUN mkdir -p /rootfs/usr \
+	&& cp -r sbin /rootfs/usr/sbin && chmod 755 /rootfs/usr/sbin \
+	&& cp -r bin /rootfs/usr/bin && chmod 755 /rootfs/usr/bin
+
+WORKDIR /rootfs
+RUN ln -s usr/bin bin && ln -s usr/sbin sbin
+
 
 # create operating system rootfs
-ARG BASELAYOUT="dev home lib mnt run var"
+#ARG USRLAYOUT="usr usr/bin usr/sbin usr/share"
+ARG ""
+ARG ROOTLAYOUT="dev home lib mnt run var"
+ARG BASELAYOUT="${ROOTLAYOUT} ${USRLAYOUT}"
 ARG LINUXLAYOUT="proc sys"
 
 RUN mkdir /rootfs/tmp && chmod 1777 /rootfs/tmp \
 	&& for d in ${BASELAYOUT} ${LINUXLAYOUT}; do \
-		mkdir /rootfs/${d}; \
+		mkdir -p /rootfs/${d}; \
 	done \
 	&& for d in ${BASELAYOUT}; do \
 		chmod 755 /rootfs/${d}; \
