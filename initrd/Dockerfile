@@ -1,10 +1,15 @@
+FROM marraison/hammer-overlay:0.0.1 as overlay
 FROM marraison/hammer-rootfs:0.0.1 as rootfs
 FROM marraison/hammer-kernel:0.0.1 as kernel
 FROM alpine:3.7 as syslinux
 LABEL maintainer="Markus Sonderegger <marraison@gmail.com>"
 
+ARG VERSION
+ARG REPO_URL="https://github.com/hammer-os/os"
+
 RUN apk add --no-cache libarchive-tools cdrkit syslinux xz
 
+COPY --from=overlay / /rootfs
 COPY --from=rootfs / /rootfs
 COPY --from=kernel / /kernel
 
@@ -29,9 +34,14 @@ RUN tar xf /kernel/kernel.tar -C /rootfs \
 	&& rm -f /rootfs/lib/modules/*/build
 
 
-# install system specific configuration
+# install system specific configuration and create /etc/os-release
 COPY etc /rootfs/etc
-RUN find /rootfs/etc/ -type d -exec chmod 755 {} + \
+RUN	echo PRETTY_NAME=\"HammerOS v${VERSION}\" > /rootfs/etc/os-release \
+	&& echo NAME=\"HammerOS\" >> /rootfs/etc/os-release \
+	&& echo ID=\"hammer\" >> /rootfs/etc/os-release \
+	&& echo VERSION=\"v${VERSION}\" >> /rootfs/etc/os-release \
+	&& echo HOME_URL=\"${REPO_URL}\" >> /rootfs/etc/os-release \
+	&& find /rootfs/etc/ -type d -exec chmod 755 {} + \
 	&& find /rootfs/etc/ -type f -exec chmod 644 {} + \
 	&& chmod 755 /rootfs/etc
 
@@ -40,11 +50,12 @@ COPY rc.init /rootfs/etc/rc.init
 COPY rc.dhcp /rootfs/etc/rc.dhcp
 RUN chmod 755 /rootfs/etc/rc.init /rootfs/etc/rc.dhcp
 
-
 # install /etc/resolv.conf symlink (must be writable, but /etc is
 # read-only.
 RUN ln -s /run/resolv.conf /rootfs/etc/resolv.conf
 
+# create /etc/mtab symlink
+RUN ln -s /proc/mounts /rootfs/etc/mtab
 
 COPY mkinitrd.sh /bin/mkinitrd
 RUN chmod 755 /bin/mkinitrd

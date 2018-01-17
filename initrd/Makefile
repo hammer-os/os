@@ -1,7 +1,8 @@
 include ../build.mk
 
 build: Dockerfile init-amd64
-	@docker build --tag=$(REPONAME)/$(NAME)-initrd:$(VERSION) .
+	@docker build --tag=$(REPONAME)/$(NAME)-initrd:$(VERSION) \
+		--build-arg=VERSION=$(VERSION) .
 
 push: build
 	@docker push $(REPONAME)/$(NAME)-initrd:$(VERSION)
@@ -22,4 +23,5 @@ init-amd64:
 	GOOS=linux GOARCH=amd64 go build -o rc.init rc.init.go
 
 clean:
+	@rm -f hammer-amd64.iso kernel initrd
 	@go clean ./...
