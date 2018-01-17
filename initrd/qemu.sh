@@ -12,4 +12,3 @@ qemu-system-x86_64 ${ENABLE_KVM} -boot d -cdrom hammer-amd64.iso \
 	-smp 1 \
 	-m 1024 \
 	-machine q35
-	
