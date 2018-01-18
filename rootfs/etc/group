@@ -5,16 +5,11 @@ sys:x:3:
 adm:x:4:
 tty:x:5:
 disk:x:6:
-lp:x:7:
 kmem:x:9:
 wheel:x:10:root
 cdrom:x:11:
 dialout:x:18:
-floppy:x:19:
-video:x:28:
-audio:x:29:
 tape:x:32:
-www-data:x:33:
 operator:x:37:
 utmp:x:43:
 plugdev:x:46:
@@ -22,4 +17,5 @@ staff:x:50:
 lock:x:54:
 netdev:x:82:
 users:x:100:
+docker:x:101:root
 nogroup:x:65534:

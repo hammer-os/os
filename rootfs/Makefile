@@ -1,7 +1,8 @@
 include ../build.mk
 
 build: Dockerfile etc
-	@docker build --tag=$(REPONAME)/$(NAME)-rootfs:$(VERSION) .
+	@docker build --tag=$(REPONAME)/$(NAME)-rootfs:$(VERSION) \
+		--build-arg=ALPINE_VERSION=$(ALPINE_VERSION) .
 
 push: build
 	@docker push $(REPONAME)/$(NAME)-rootfs:$(VERSION)

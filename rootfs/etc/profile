@@ -15,6 +15,7 @@ umask 022
 
 alias la='/bin/ls -la'
 alias ll='/bin/ls -l'
+alias lc='/bin/ls'
 
 for i in /etc/profile.d/*.sh ; do
 	if [ -r "$i" ]; then

@@ -1,36 +1,63 @@
-FROM marraison/hammer-busybox:0.0.1 as busybox-binary
-LABEL maintainer="Markus Sonderegger <marraison@gmail.com>"
+ARG ALPINE_VERSION
 
-# install busybox coreutils (provides /bin and /sbin)
-RUN install -d -m 755 /rootfs/usr \
-	&& cp -r sbin /rootfs/usr && chmod 755 /rootfs/usr/sbin \
-	&& cp -r bin /rootfs/usr && chmod 755 /rootfs/usr/bin
+FROM alpine:${ALPINE_VERSION} as overlay
 
-# create /bin and /sbin symbolic links
-WORKDIR /rootfs
-RUN ln -s usr/bin bin && ln -s usr/sbin sbin
+# create rootfs namespace and install Alpine Linux binary packages
+RUN mkdir -p /rootfs/etc/apk \
+	&& cp -r /etc/apk/* /rootfs/etc/apk/ \
+	&& apk add --no-cache --initdb --root /rootfs \
+		busybox ca-certificates \
+		openssh-sftp-server \
+		openssh-server \
+		openssh-client \
+		btrfs-progs \
+		iptables \
+		device-mapper-libs \
+		libltdl \
+		libseccomp \
+		docker \
+		musl \
+	&& true
 
-# create operating system rootfs
-#ARG USRLAYOUT="usr usr/bin usr/sbin usr/share"
-ARG ROOTLAYOUT="dev home lib mnt run var"
-ARG USRLAYOUT=""
-ARG BASELAYOUT="${ROOTLAYOUT} ${USRLAYOUT}"
-ARG LINUXLAYOUT="proc sys"
+# remove directories/files with no use
+ARG NOT_WANT=" \
+	/rootfs/etc/apk /rootfs/lib/apk \
+	/rootfs/etc/conf.d \
+	/rootfs/etc/init.d \
+	/rootfs/etc/network \
+	/rootfs/etc/securetty \
+	/rootfs/usr/bin/findssl.sh \
+	/rootfs/usr/bin/iptables-xml \
+	/rootfs/usr/local \
+	/rootfs/var \
+"
+RUN rm -rf ${NOT_WANT}
 
-RUN install -d -m 1777 /rootfs/tmp \
-	&& for d in ${BASELAYOUT}; do \
-		install -d -m 755 /rootfs/${d}; \
+# create system and distribution relevant directories/files
+ARG SYSTEM_MOUNTPOINTS="proc sys"
+ARG MOUNTPOINTS="dev run tmp var"
+RUN mkdir -p /rootfs/home/adm && chmod 750 /rootfs/home/adm \
+	&& chown adm:adm /rootfs/home/adm \
+	&& mkdir -p /rootfs/root && chmod 750 /rootfs/root \
+	&& mkdir -p /rootfs/tmp && chmod 1777 /rootfs/tmp \
+	&& for d in ${SYSTEM_MOUNTPOINTS}; do \
+		mkdir -p /rootfs/${d} && chmod 555 /rootfs/${d}; \
 	done \
-	&& for d in ${LINUXLAYOUT}; do \
-		install -d -m 555 /rootfs/${d}; \
-	done \
-	&& install -d -m 700 /rootfs/root
+	&& for d in ${MOUNTPOINTS}; do \
+		mkdir -p /rootfs/${d} && chmod 755 /rootfs/${d}; \
+	done
 
-# install hammer configuration scripts
+# install distribution configuration files
 ADD etc /rootfs/etc
-RUN    find /rootfs/etc/ -type d -exec chmod 755 {} + \
-	&& find /rootfs/etc/ -type f -exec chmod 644 {} + \
-	&& chmod 755 /rootfs/etc
+
+COPY service.c service.c
+RUN apk add --no-cache \
+		bsd-compat-headers \
+		linux-headers \
+		musl-dev \
+		gcc \
+	&& gcc -o /rootfs/sbin/service service.c
 
 FROM scratch
-COPY --from=busybox-binary /rootfs /
+COPY --from=overlay /rootfs /
+LABEL maintainer="Markus Sonderegger <marraison@gmail.com>"
