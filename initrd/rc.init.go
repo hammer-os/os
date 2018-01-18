@@ -122,6 +122,8 @@ func doMount() {
 	mkdir("/var/cache", 0755)
 	mkdir("/var/empty", 0555)
 	mkdir("/var/lib", 0755)
+	mkdir("/var/lib/iptables", 0755)
+	mkdir("/var/lib/udhcpd", 0755)
 	mkdir("/var/local", 0755)
 	mkdir("/var/lock", 0755)
 	mkdir("/var/log", 0755)
@@ -130,7 +132,8 @@ func doMount() {
 	mkdir("/var/tmp", 01777)
 	symlink("/run", "/var/run")
 
-	touch("/run/resolv.conf", 0600)
+	mkdir("/run/hammer/docker", 0755)
+	touch("/run/hammer/resolv.conf", 0600)
 
 	// Hide all kernel messages. Only kernel panics will be displayed.
 	write("/proc/sys/kernel/printk", "1")

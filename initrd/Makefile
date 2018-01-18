@@ -2,6 +2,7 @@ include ../build.mk
 
 build: Dockerfile init-amd64
 	@docker build --tag=$(REPONAME)/$(NAME)-initrd:$(VERSION) \
+		--build-arg=ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg=VERSION=$(VERSION) .
 
 push: build
