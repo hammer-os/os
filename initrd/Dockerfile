@@ -53,8 +53,7 @@ RUN chmod 755 /rootfs/etc/rc.init /rootfs/etc/rc.dhcp
 
 # install /etc/resolv.conf symlink and /etc/docker configuration
 # directory (both must be writable), but /etc is read-only.
-RUN ln -s /run/hammer/resolv.conf /rootfs/etc/resolv.conf
-RUN ln -s /run/hammer/docker /rootfs/etc/docker
+RUN ln -s /run/resolv.conf /rootfs/etc/resolv.conf
 
 # create /etc/mtab symlink
 RUN ln -s /proc/mounts /rootfs/etc/mtab

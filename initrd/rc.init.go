@@ -179,8 +179,8 @@ func doMount() {
 	mkdir("/var/tmp", 01777)
 	symlink("/run", "/var/run")
 
-	mkdir("/run/hammer/docker", 0755)
-	touch("/run/hammer/resolv.conf", 0600)
+	//mkdir("/run/hammer/docker", 0755)
+	touch("/run/resolv.conf", 0600)
 
 	// Hide all kernel messages. Only kernel panics will be displayed.
 	write("/proc/sys/kernel/printk", "1")
