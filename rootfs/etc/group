@@ -17,5 +17,4 @@ staff:x:50:
 lock:x:54:
 netdev:x:82:
 users:x:100:
-docker:x:101:root
 nogroup:x:65534:
