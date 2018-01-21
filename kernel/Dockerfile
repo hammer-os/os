@@ -1,5 +1,5 @@
-FROM alpine:3.7
-LABEL maintainer="Markus Sonderegger <marraison@gmail.com>"
+ARG ALPINE_VERSION
+FROM alpine:${ALPINE_VERSION}
 
 RUN apk add --no-cache \
 		argp-standalone \
