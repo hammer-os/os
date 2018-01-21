@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"io"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"golang.org/x/sys/unix"
 )
@@ -88,6 +90,38 @@ func touch(path string, perm os.FileMode) {
 	}
 }
 
+func doCgroupMount() {
+	f, err := os.Open("/proc/cgroups")
+	if err != nil {
+		log.Printf("error opening /proc/cgroups: %v", err)
+		return
+	}
+	defer f.Close()
+
+	s := bufio.NewScanner(f)
+	s.Split(bufio.ScanWords)
+	var name string
+	for n := 0; s.Scan(); {
+		switch n {
+		case 0:
+			name = s.Text()
+			n++
+		case 3:
+			if len(name) > 0 && name[0] != '#' {
+				path := filepath.Join("/sys/fs/cgroup", name)
+				mkdir(path, 0555)
+				mount(name, path, "cgroup", noexec|nosuid|nodev, name)
+			}
+			n = 0
+		default:
+			n++
+		}
+	}
+	if err := s.Err(); err != nil {
+		log.Printf("error scanning /proc/cgroups: %v", err)
+	}
+}
+
 func doMount() {
 	mount("dev", "/dev", "devtmpfs", nosuid|noexec|relatime, "size=10m,nr_inodes=248418,mode=755")
 
@@ -117,6 +151,19 @@ func doMount() {
 	mount("mqueue", "/dev/mqueue", "mqueue", noexec|nosuid|nodev, "")
 	mount("shm", "/dev/shm", "tmpfs", noexec|nosuid|nodev, "mode=1777")
 	mount("devpts", "/dev/pts", "devpts", noexec|nosuid, "gid=5,mode=0620")
+
+	// mount cgroup root tmpfs
+	mount("cgroup_root", "/sys/fs/cgroup", "tmpfs", nodev|noexec|nosuid, "mode=755,size=10m")
+	doCgroupMount()
+
+	// TODO: some of the subsystems may not exist
+	mount("securityfs", "/sys/kernel/security", "securityfs", noexec|nosuid|nodev, "")
+	mount("debugfs", "/sys/kernel/debug", "debugfs", noexec|nosuid|nodev, "")
+	mount("configfs", "/sys/kernel/config", "configfs", noexec|nosuid|nodev, "")
+	mount("fusectl", "/sys/fs/fuse/connections", "fusectl", noexec|nosuid|nodev, "")
+	mount("selinuxfs", "/sys/fs/selinux", "selinuxfs", noexec|nosuid, "")
+	mount("pstore", "/sys/fs/pstore", "pstore", noexec|nosuid|nodev, "")
+	mount("efivarfs", "/sys/firmware/efi/efivars", "efivarfs", noexec|nosuid|nodev, "")
 
 	mount("tmpfs", "/var", "tmpfs", nodev|nosuid|noexec|relatime, "size=50%,mode=755")
 	mkdir("/var/cache", 0755)
