@@ -1,11 +1,15 @@
 ARG ALPINE_VERSION
+ARG VERSION
 
+FROM marraison/hammer-busybox:${VERSION} as busybox
 FROM alpine:${ALPINE_VERSION} as overlay
 
 # create rootfs namespace and install Alpine Linux binary packages
-RUN mkdir -p /rootfs/etc/apk \
-	&& cp -r /etc/apk/* /rootfs/etc/apk/ \
-	&& apk add --no-cache --initdb --root /rootfs \
+COPY --from=busybox / /pkg
+RUN mkdir -p /rootfs/etc/apk && cp -r /etc/apk/* /rootfs/etc/apk/ \
+	&& apk add --no-cache --initdb --allow-untrusted --root /rootfs \
+		/pkg/x86_64/busybox-1.28.0-r0.apk \
+	&& apk add --no-cache --root /rootfs \
 		busybox ca-certificates \
 		openssh-sftp-server \
 		openssh-server \
@@ -16,7 +20,6 @@ RUN mkdir -p /rootfs/etc/apk \
 		libltdl \
 		libseccomp \
 		docker \
-		musl \
 	&& true
 
 # remove directories/files with no use
@@ -50,14 +53,5 @@ RUN mkdir -p /rootfs/home/adm && chmod 750 /rootfs/home/adm \
 # install distribution configuration files
 ADD etc /rootfs/etc
 
-COPY service.c service.c
-RUN apk add --no-cache \
-		bsd-compat-headers \
-		linux-headers \
-		musl-dev \
-		gcc \
-	&& gcc -o /rootfs/sbin/service service.c
-
 FROM scratch
 COPY --from=overlay /rootfs /
-LABEL maintainer="Markus Sonderegger <marraison@gmail.com>"
