@@ -1,0 +1,49 @@
+pkgdesc="Size optimized toolbox of many common UNIX utilities"
+url=http://busybox.net
+license="GPL2"
+
+pkgname=busybox
+pkgver=1.28.0
+pkgrel=0
+arch="all"
+makedepends_build=""
+makedepends_host="linux-headers"
+makedepends="$makedepends_build $makedepends_host"
+provides="/bin/sh"
+source="http://busybox.net/downloads/$pkgname-$pkgver.tar.bz2
+	$pkgname.config
+	$pkgname.post-install"
+install="$pkgname.post-install"
+
+prepare() {
+	default_prepare
+}
+
+build() {
+	cp "$srcdir/$pkgname.config" .config
+	make silentoldconfig
+	make busybox
+}
+
+check() {
+	#cd "$builddir"
+	#make check
+	echo -n
+}
+
+package() {
+	mkdir -p "$pkgdir"/usr/sbin "$pkgdir"/usr/bin \
+		"$pkgdir"/sbin "$pkgdir"/bin
+	chmod 755 "$pkgdir"/usr/sbin "$pkgdir"/usr/bin \
+		"$pkgdir"/sbin "$pkgdir"/bin
+
+	cd "$builddir"
+	install -m755 busybox "$pkgdir"/bin/busybox
+
+	# we need sh to be able to execute post-install
+	ln -s /bin/busybox "$pkgdir"/bin/sh
+}
+
+sha512sums="346a71d44e6c4e1889ac12ae52320cb0c3d0c45c2b4b49fc4e3c0bb25f427707d8075150d545906f414b9f4e5b6d8f1a3afe8cdc31f6a64e06c62b400d7d129b  busybox-1.28.0.tar.bz2
+45e92a4be99faf43dd1c32c66e8d21cd7664b829e863b3861101fa8cd7980cefab6246ed75d6b02abc2340ce6f05ac9cfeb1247009423d10350447cc3a4352c5  busybox.config
+b9aeb6712dd923457da36f2d98a045730dfdabb43c9fed812bc9e2f20b89c0bc09ed173ebd5ec8693756b60f0871edf83bac7f9bc14acac024e57a384d573ad4  busybox.post-install"
