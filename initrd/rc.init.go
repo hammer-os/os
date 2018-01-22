@@ -52,12 +52,21 @@ func mkchar(path string, mode, major, minor uint32) {
 	}
 }
 
+// TODO
 func run(name string, args ...string) {
 	cmd := exec.Command(name, args...)
 	if err := cmd.Run(); err != nil {
 		log.Printf("error running %s %v: %v", name, args, err)
 	}
 }
+
+// TOOD
+//func start(name string, args ...string) {
+//	cmd := exec.Command(name, args...)
+//	if err := cmd.Start(); err != nil {
+//		log.Printf("error starting %s %v: %v", name, args, err)
+//	}
+//}
 
 func write(path string, data string) {
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
@@ -90,6 +99,29 @@ func touch(path string, perm os.FileMode) {
 	}
 }
 
+func cgroupSubsystems(r io.Reader) ([]string, error) {
+	sub, name := []string{}, ""
+	s := bufio.NewScanner(r)
+	s.Split(bufio.ScanWords)
+	for n := 0; s.Scan(); {
+		switch n {
+		case 0:
+			name = s.Text()
+			n++
+		case 1, 2:
+			n++
+		case 3:
+			if len(name) > 0 && name[0] != '#' {
+				if s.Text() == "1" {
+					sub = append(sub, name)
+				}
+			}
+			name, n = "", 0
+		}
+	}
+	return sub, s.Err()
+}
+
 func doCgroupMount() {
 	f, err := os.Open("/proc/cgroups")
 	if err != nil {
@@ -98,27 +130,16 @@ func doCgroupMount() {
 	}
 	defer f.Close()
 
-	s := bufio.NewScanner(f)
-	s.Split(bufio.ScanWords)
-	var name string
-	for n := 0; s.Scan(); {
-		switch n {
-		case 0:
-			name = s.Text()
-			n++
-		case 3:
-			if len(name) > 0 && name[0] != '#' {
-				path := filepath.Join("/sys/fs/cgroup", name)
-				mkdir(path, 0555)
-				mount(name, path, "cgroup", noexec|nosuid|nodev, name)
-			}
-			n = 0
-		default:
-			n++
-		}
+	subsystems, err := cgroupSubsystems(f)
+	if err != nil {
+		log.Printf("error finding cgroup subsystems: %v", err)
+		return
 	}
-	if err := s.Err(); err != nil {
-		log.Printf("error scanning /proc/cgroups: %v", err)
+
+	for _, name := range subsystems {
+		path := filepath.Join("/sys/fs/cgroup", name)
+		mkdir(path, 0555)
+		mount(name, path, "cgroup", noexec|nosuid|nodev, name)
 	}
 }
 
@@ -169,7 +190,7 @@ func doMount() {
 	mkdir("/var/cache", 0755)
 	mkdir("/var/empty", 0555)
 	mkdir("/var/lib", 0755)
-	mkdir("/var/lib/iptables", 0755)
+	mkdir("/var/lib/containerd", 0755)
 	mkdir("/var/lib/udhcpd", 0755)
 	mkdir("/var/local", 0755)
 	mkdir("/var/lock", 0755)
@@ -179,11 +200,15 @@ func doMount() {
 	mkdir("/var/tmp", 01777)
 	symlink("/run", "/var/run")
 
-	//mkdir("/run/hammer/docker", 0755)
 	touch("/run/resolv.conf", 0600)
 
 	// Hide all kernel messages. Only kernel panics will be displayed.
 	write("/proc/sys/kernel/printk", "1")
+}
+
+func doContainerd() {
+	mkdir("/run/rw/containerd", 0755)
+	//start("/usr/bin/containerd")
 }
 
 func doNetwork() {
@@ -192,6 +217,7 @@ func doNetwork() {
 	run("/sbin/ip", "link", "set", "lo", "up")
 
 	run("/sbin/ip", "link", "set", "eth0", "up")
+	// TODO:
 	run("/sbin/udhcpc", "-s", "/etc/rc.dhcp", "-i", "eth0", "-v")
 }
 
@@ -208,4 +234,5 @@ func main() {
 	doClock()
 	doHotplug()
 	doNetwork()
+	doContainerd()
 }
