@@ -29,9 +29,9 @@ ARG KERNEL_SOURCE=https://www.kernel.org/pub/linux/kernel/v4.x/linux-${KERNEL_VE
 ARG KERNEL_SHA256_SUMS=https://www.kernel.org/pub/linux/kernel/v4.x/sha256sums.asc
 ARG KERNEL_PGP2_SIGN=https://www.kernel.org/pub/linux/kernel/v4.x/linux-${KERNEL_VERSION}.tar.sign
 
-ARG KERNEL_DEF_AMD64_CONFIG=/linux/arch/x86/configs/x86_64_defconfig
+ARG KERNEL_DEF_X86_64_CONFIG=/linux/arch/x86/configs/x86_64_defconfig
 
-ADD keys.asc /keys.asc
+COPY keys.asc /keys.asc
 
 RUN curl -fsSLO ${KERNEL_SHA256_SUMS} \
     && gpg -q --import keys.asc \
@@ -45,7 +45,10 @@ RUN curl -fsSLO ${KERNEL_SHA256_SUMS} \
     && cat linux-${KERNEL_VERSION}.tar | tar --absolute-names -x \
 	&& mv /linux-${KERNEL_VERSION} /linux
 
-ADD config-amd64 ${KERNEL_DEF_AMD64_CONFIG}
+
+COPY config-x86_64 ${KERNEL_DEF_X86_64_CONFIG}
+COPY mkcompile_h /linux/scripts/mkcompile_h
+RUN chmod 775 /linux/scripts/mkcompile_h
 WORKDIR /linux
 
 RUN make defconfig && make oldconfig \

@@ -1,8 +1,8 @@
 include ../build.mk
 
-build: build-image-amd64
+build: build-image-$(ARCH)
 
-build-image-amd64: Dockerfile config-amd64 keys.asc
+build-image-x86_64: Dockerfile config-x86_64 keys.asc
 	@docker build --tag=$(REPONAME)/$(NAME)-kernel:$(VERSION) \
 		--tag=$(REPONAME)/$(NAME)-kernel:$(KERNEL_VERSION) \
 		--build-arg=KERNEL_VERSION=$(KERNEL_VERSION) \
