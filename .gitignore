@@ -1,4 +1,7 @@
+initrd/etc/os-release
 initrd/rc.init
 initrd/initrd
 initrd/kernel
 initrd/*.iso
+
+rootfs/etc/issue
