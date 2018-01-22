@@ -10,11 +10,6 @@ RUN adduser -G abuild -D abuild \
 
 COPY --chown=abuild:abuild . /busybox
 
-#APKBUILD /busybox/APKBUILD
-#COPY --chown=abuild:abuild busyconfig /busybox/busybox.config
-#COPY --chown=abuild:abuild post-install \
-#	/busybox/busybox.post-install
-
 WORKDIR /busybox
 USER abuild
 RUN abuild-keygen -i -a -n && abuild -r -P /pkg
