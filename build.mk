@@ -1,5 +1,5 @@
-REPONAME = marraison
-NAME     = hammer
+REPONAME =  marraison
+NAME     =  hammer
 VERSION  ?= 0.0.4
 ARCH     ?= x86_64
 

@@ -1,10 +1,6 @@
 include ../build.mk
 
 build: Dockerfile init-$(ARCH)
-	@echo PRETTY_NAME=\"HammerOS v${VERSION}\" > etc/os-release
-	@echo NAME=\"HammerOS\" >> etc/os-release
-	@echo ID=\"hammer\" >> etc/os-release
-	@echo VERSION=\"v${VERSION}\" >> etc/os-release
 	@docker build --tag=$(REPONAME)/$(NAME)-initrd:$(VERSION) \
 		--build-arg=ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg=VERSION=$(VERSION) .
@@ -25,8 +21,8 @@ initrd: build
 		> initrd-$(ARCH).gz
 
 init-x86_64:
-	GOOS=linux GOARCH=amd64 go build -o rc.init rc.init.go
+	@make -C init rc.init
 
 clean:
-	@rm -f etc/os-release hammer-*.iso kernel initrd
-	@go clean ./...
+	@make -C init clean
+	@rm -f hammer-*.iso kernel initrd rc.init

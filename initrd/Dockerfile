@@ -28,9 +28,6 @@ RUN tar xf /kernel/kernel.tar -C /rootfs \
 	&& chmod 755 /rootfs/lib \
 	&& rm -f /rootfs/lib/modules/*/build
 
-# install system specific configuration and create /etc/os-release
-COPY etc /rootfs/etc
-
 # install rc.(start|shutdown|...) handler (/sbin/init)
 COPY rc.init /rootfs/etc/rc.init
 COPY rc.dhcp /rootfs/etc/rc.dhcp
