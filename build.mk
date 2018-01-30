@@ -1,6 +1,6 @@
 REPONAME =  marraison
 NAME     =  hammer
-VERSION  ?= 0.0.4
+VERSION  ?= 0.0.5
 ARCH     ?= x86_64
 
 KERNEL_VERSION     ?= 4.14.14

@@ -10,7 +10,7 @@ push: build
 
 iso: build
 	@docker run $(REPONAME)/$(NAME)-initrd:$(VERSION) iso \
-		> hammer-$(ARCH).iso
+		> ../hammer-$(ARCH).iso
 
 kernel: build
 	@docker run $(REPONAME)/$(NAME)-initrd:$(VERSION) kernel \

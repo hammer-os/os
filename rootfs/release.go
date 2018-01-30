@@ -13,10 +13,10 @@ func osrelease(path string, version string) error {
 	}
 	defer f.Close()
 
-	fmt.Fprintf(f, `PRETTY_NAME="v%s"
-NAME="HammerOS"
+	fmt.Fprintf(f, `NAME="HammerOS"
 ID="hammer"
 VERSION="v%s"
+PRETTY_NAME="v%s"
 `, version, version)
 	return nil
 }
@@ -29,9 +29,7 @@ func issue(path string, version string) error {
 	defer f.Close()
 
 	fmt.Fprintf(f, `
-
 HammerOS v%s (Kernel \r on a \m (\l))
-
 
 `, version)
 	return nil

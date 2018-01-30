@@ -1,9 +1,11 @@
 #!/bin/sh
 
+ARCH=x86_64
+
 ENABLE_KVM=""
 [ -c /dev/kvm ] && ENABLE_KVM=-enable-kvm
 
-qemu-system-x86_64 ${ENABLE_KVM} -boot d -cdrom hammer-x86_64.iso \
+qemu-system-${ARCH} ${ENABLE_KVM} -boot d -cdrom hammer-${ARCH}.iso \
 	-device virtio-net-pci,netdev=t0,mac=b6:d3:e7:05:5c:1b \
 	-netdev user,id=t0 \
 	-object rng-random,id=rng0,filename=/dev/urandom \

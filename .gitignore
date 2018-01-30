@@ -5,4 +5,4 @@ rootfs/release
 initrd/rc.init
 initrd/initrd
 initrd/kernel
-initrd/*.iso
+*.iso
