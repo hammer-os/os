@@ -1,8 +1,6 @@
 include ../build.mk
 
-build: Dockerfile etc
-	@echo "HammerOS v$(VERSION) (Kernel \r on an \m (\l))" > etc/issue
-	@echo >> etc/issue
+build: Dockerfile etc release
 	@docker build --tag=$(REPONAME)/$(NAME)-rootfs:$(VERSION) \
 		--build-arg=CONTAINERD_VERSION=$(CONTAINERD_VERSION) \
 		--build-arg=ALPINE_VERSION=$(ALPINE_VERSION) \
@@ -15,5 +13,8 @@ run: build
 	@docker run --interactive --tty --volume=$(CURDIR):/data \
 		$(REPONAME)/$(NAME)-rootfs:$(VERSION) /bin/sh -l
 
+release: release.go
+	@go run release.go $(VERSION)
+
 clean:
-	@echo -n
+	@rm -f release
