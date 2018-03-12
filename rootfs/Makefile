@@ -2,7 +2,6 @@ include ../build.mk
 
 build: Dockerfile etc release
 	@docker build --tag=$(REPONAME)/$(NAME)-rootfs:$(VERSION) \
-		--build-arg=CONTAINERD_VERSION=$(CONTAINERD_VERSION) \
 		--build-arg=ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg=VERSION=$(VERSION) .
 

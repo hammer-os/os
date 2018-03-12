@@ -106,7 +106,6 @@ func doMount() {
 	mkdir("/var/cache", 0755)
 	mkdir("/var/empty", 0555)
 	mkdir("/var/lib", 0755)
-	mkdir("/var/lib/containerd", 0755)
 	mkdir("/var/lib/udhcpd", 0755)
 	mkdir("/var/local", 0755)
 	mkdir("/var/lock", 0755)
@@ -120,11 +119,6 @@ func doMount() {
 
 	// Hide all kernel messages. Only kernel panics will be displayed.
 	write("/proc/sys/kernel/printk", []byte("1"), 0644)
-}
-
-func doContainerd() {
-	mkdir("/run/rw/containerd", 0755)
-	//start("/usr/bin/containerd")
 }
 
 func doNetwork() {
@@ -150,5 +144,4 @@ func main() {
 	doClock()
 	doHotplug()
 	doNetwork()
-	doContainerd()
 }

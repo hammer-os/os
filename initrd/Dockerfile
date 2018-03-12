@@ -41,9 +41,6 @@ RUN ln -s /run/resolv.conf /rootfs/etc/resolv.conf
 # create /etc/mtab symlink
 RUN ln -s /proc/mounts /rootfs/etc/mtab
 
-# create writable containerd configuration directory
-RUN ln -s /run/rw/containerd /rootfs/etc/containerd
-
 COPY mkinitrd.sh /bin/mkinitrd
 RUN chmod 755 /bin/mkinitrd
 

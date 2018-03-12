@@ -12,7 +12,6 @@ RUN mkdir -p /rootfs/etc/apk && cp -r /etc/apk/* /rootfs/etc/apk/ \
 		ca-certificates \
 		openssh-server \
 		btrfs-progs \
-		musl \
 	&& true
 
 # remove directories/files with no use
@@ -32,32 +31,6 @@ ARG NOT_WANT=" \
 	/rootfs/usr/bin/iptables-xml \
 "
 RUN rm -rf ${NOT_WANT}
-
-# alpine linux v3.7.x does not include containerd. build and install ...
-ENV PATH=${PATH}:/go/bin
-ENV GOPATH=/go
-ARG CONTAINERD_VERSION
-
-RUN apk update && apk upgrade -a && apk add \
-		git gcc go make curl \
-		musl-dev \
-		libc-dev \
-		btrfs-progs-dev \
-		linux-headers \
-	&& true
-
-RUN mkdir -p ${GOPATH}/src/github.com/containerd \
-	&& cd ${GOPATH}/src/github.com/containerd \
-	&& git clone https://github.com/containerd/containerd.git \
-	&& cd ${GOPATH}/src/github.com/containerd/containerd \
-	&& git checkout v${CONTAINERD_VERSION} \
-	&& make binaries \
-		EXTRA_FLAGS="-buildmode pie" \
-		EXTRA_LDFLAGS='-extldflags "-fno-PIC -static"' \
-		BUILD_TAGS="static_build" \
-	&& cp bin/containerd /rootfs/sbin/containerd \
-	&& cp bin/containerd-shim /rootfs/sbin/containerd-shim \
-	&& cp bin/ctr /rootfs/sbin/ctr
 
 # create system and distribution relevant directories/files
 ARG SYSTEM_MOUNTPOINTS="proc sys"
