@@ -1,17 +1,21 @@
 ARG ALPINE_VERSION
 ARG VERSION
+FROM marraison/hammer-kubernetes:${VERSION} as kubernetes
 FROM marraison/hammer-busybox:${VERSION} as busybox
 FROM alpine:${ALPINE_VERSION} as packages
 
 # create rootfs namespace and install Alpine Linux binary packages
+COPY --from=kubernetes / /pkg
 COPY --from=busybox / /pkg
 RUN mkdir -p /rootfs/etc/apk && cp -r /etc/apk/* /rootfs/etc/apk/ \
 	&& apk add --no-cache --initdb --allow-untrusted -p /rootfs \
+		/pkg/x86_64/kubernetes-1.8.5-r0.apk \
 		/pkg/x86_64/busybox-1.28.0-r0.apk \
 	&& apk add --no-cache -p /rootfs \
 		ca-certificates \
 		openssh-server \
 		btrfs-progs \
+		bash \
 	&& true
 
 # remove directories/files with no use
