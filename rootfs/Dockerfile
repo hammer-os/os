@@ -3,7 +3,6 @@ ARG VERSION
 FROM marraison/hammer-busybox:${VERSION} as busybox
 FROM alpine:${ALPINE_VERSION} as packages
 
-
 # create rootfs namespace and install Alpine Linux binary packages
 COPY --from=busybox / /pkg
 RUN mkdir -p /rootfs/etc/apk && cp -r /etc/apk/* /rootfs/etc/apk/ \
